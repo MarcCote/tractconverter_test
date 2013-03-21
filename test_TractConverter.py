@@ -5,17 +5,14 @@ import tempfile
 import hashlib
 from functools import partial
 
-import numpy as np
-
 from numpy.testing import (assert_equal,
                            assert_almost_equal,
                            assert_array_equal,
                            assert_array_almost_equal,
                            assert_raises)
 
-
-import tractconverter.TractConverter as TractConverter
-from tractconverter.TractConverter import FORMATS
+import tractconverter
+from tractconverter import FORMATS
 
 DATA_DIR = os.path.dirname(os.path.realpath(__file__)) + os.sep + "data" + os.sep
 
@@ -38,28 +35,37 @@ def md5sum(filename):
 def test_conversion():
     #Load test data
     ref = DATA_DIR + "uncinate"
-    ref_anat = DATA_DIR + "anat.nii.gz"
+    anat_filename = DATA_DIR + "anat.nii.gz"
 
     #Test every possible conversions
-    for k1 in FORMATS.keys():
-        for k2 in FORMATS.keys():
+    for k1, ref_format in FORMATS.items():
+        for k2, out_format in FORMATS.items():
             print "Testing {0}2{1}".format(k1, k2)
             f, out = tempfile.mkstemp('_{0}2{1}'.format(k1, k2))
 
-            input = ref + "." + k1
-            output = out + "." + k2
-            TractConverter.convert(input, output, ref_anat)
+            ref_filename = ref + "." + k1
+            out_filename = out + "." + k2
 
-            f2, out2 = tempfile.mkstemp('_{0}2{1}'.format(k2, k1))
-            output2 = out2 + "." + k1
-            TractConverter.convert(output, output2, ref_anat)
+            input = ref_format(ref_filename, anat_filename)
+            output = out_format.create(out_filename, input.hdr, anat_filename)
+            tractconverter.convert(input, output)
 
-            #assert_equal(md5sum(input), md5sum(output2))
-            compare_data(FORMATS[k1](input, ref_anat), FORMATS[k2](output, ref_anat))
-            os.remove(output)
+            f, bak = tempfile.mkstemp('_{0}2{1}'.format(k2, k1))
+            bak_filename = bak + "." + k1
 
-            compare_data(FORMATS[k1](input, ref_anat), FORMATS[k1](output2, ref_anat))
-            os.remove(output2)
+            output = out_format(out_filename, anat_filename)
+            backup = ref_format.create(bak_filename, input.hdr, anat_filename)
+            tractconverter.convert(output, backup)
+
+            input = ref_format(ref_filename, anat_filename)
+            output = out_format(out_filename, anat_filename)
+            compare_data(input, output)
+            os.remove(out_filename)
+
+            input = ref_format(ref_filename, anat_filename)
+            backup = ref_format(bak_filename, anat_filename)
+            compare_data(input, backup)
+            os.remove(bak_filename)
 
 
 if __name__ == "__main__":
