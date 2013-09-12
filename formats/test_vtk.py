@@ -26,17 +26,25 @@ def test_load_file():
     #Load empty file
     filename = os.path.join(DATA_DIR, "empty.vtk")
     in_format = tractconverter.FORMATS['vtk']
-    in_format(filename)
+    for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
 
     #Load binary file
     filename = os.path.join(DATA_DIR, "uncinate.vtk")
     in_format = tractconverter.FORMATS['vtk']
     in_format(filename)
+    for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
 
     #Load ascii file
     filename = os.path.join(DATA_DIR, "ascii.vtk")
     in_format = tractconverter.FORMATS['vtk']
     in_format(filename)
+    for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
+
+    #Load another ascii file
+    filename = os.path.join(DATA_DIR, "ascii2.vtk")
+    in_format = tractconverter.FORMATS['vtk']
+    in_format(filename)
+    for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
     
 
 def test_convert_ascii_file():
