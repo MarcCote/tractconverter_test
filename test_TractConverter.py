@@ -18,7 +18,6 @@ DATA_DIR = os.path.dirname(os.path.realpath(__file__)) + os.sep + "data" + os.se
 
 
 def compare_data(input_1, input_2):
-
     for i, (f1, f2) in enumerate(zip(input_1, input_2)):
         assert_array_equal(f1, f2)
 
@@ -42,6 +41,7 @@ def test_conversion():
         for k2, out_format in FORMATS.items():
             print "Testing {0}2{1}".format(k1, k2)
             f, out = tempfile.mkstemp('_{0}2{1}'.format(k1, k2))
+            os.remove(out)
 
             ref_filename = ref + "." + k1
             out_filename = out + "." + k2
