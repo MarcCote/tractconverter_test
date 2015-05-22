@@ -2,6 +2,7 @@ from pdb import set_trace as dbg
 
 import os
 import tempfile
+import shutil
 import hashlib
 import numpy as np
 from functools import partial
@@ -53,6 +54,24 @@ def test_load_file():
     in_format = tractconverter.FORMATS['tck']
     in_format(filename)
     for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
+
+
+def test_load_file_without_inf():
+    in_format = tractconverter.FORMATS['tck']
+
+    #Load binary file and remove last 3 inf.
+    original_filename = os.path.join(DATA_DIR, "uncinate.tck")
+    nb_points_original = in_format(original_filename).hdr[H.NB_POINTS]
+
+    f, filename = tempfile.mkstemp('uncinate_without_inf.tck')
+    shutil.copy(original_filename, filename)
+    f = open(filename, 'r+')
+    f.truncate(os.path.getsize(filename) - 3*np.float32(np.inf).nbytes)
+
+    for i in in_format(filename): pass  # Check if we can iterate throught the streamlines.
+
+    nb_points = in_format(filename).hdr[H.NB_POINTS]
+    assert_equal(nb_points, nb_points_original)
 
 
 if __name__ == "__main__":
